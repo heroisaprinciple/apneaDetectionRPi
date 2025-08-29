@@ -1,4 +1,4 @@
-# 🔹 Raspberry Pi Apnea Recorder (Raw Audio + AWS S3 Upload)
+# Raspberry Pi Apnea Recorder (Raw Audio + AWS S3 Upload)
 
 This repository provides a Python script to record **10-second raw audio segments** using a **USB microphone on Raspberry Pi**, save the recordings locally, and upload them to an **AWS S3 bucket**.
 
@@ -13,7 +13,14 @@ This repository is a significant part of [Apnea Detection](https://github.com/he
 - Records 10-second mono audio at 16 kHz
 - Stores as `.wav` in a timestamped directory structure
 - Uploads to an encrypted AWS S3 bucket
-- Fully configurable with environment variables and constants
+
+The setup photo:
+
+![Setup RPi](https://i.imgur.com/jMqkZ9X.jpeg)
+
+The initial idea was to use the compact microphone, but that was abandoned as it couldn't be connected. (Lavalier microphone)
+
+The one that is used: zealsound USB Microphone, k66
 
 ---
 
@@ -35,18 +42,6 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-
-#### `requirements.txt`
-```
-pyaudio
-boto3
-librosa
-numpy
-scipy
-matplotlib
-soundfile
-```
-
 ---
 
 ## Usage
