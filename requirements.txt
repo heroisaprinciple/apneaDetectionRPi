@@ -1,2 +1,8 @@
 pyaudio
 boto3
+librosa
+numpy
+scipy
+matplotlib
+numpy
+soundfile

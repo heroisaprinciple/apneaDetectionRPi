@@ -1,17 +1,23 @@
 import pyaudio
 import wave
+import numpy as np
+import scipy.fftpack as fft
+from scipy.signal import medfilt
+import soundfile as sf
+import librosa
+import matplotlib as plt
 from datetime import datetime, timezone
 import os
 import boto3
 from pathlib import Path
 
-FORMAT = pyaudio.paInt16
+FORMAT = pyaudio.paFloat32
 CHANNELS = 1
 SAMPLE_RATE = 16000
 SECONDS = 10
 CHUNK = 1024
 DEFAULT_DIR = "recordings"
-PATIENT_ID = "patient001"
+PATIENT_ID = "00001486-100507"
 BUCKET_NAME = "apnearecordings"
 
 def record_audio(format=FORMAT, channels=CHANNELS, rate=SAMPLE_RATE, seconds=SECONDS, input=True, chunk=CHUNK):
@@ -31,7 +37,7 @@ def record_audio(format=FORMAT, channels=CHANNELS, rate=SAMPLE_RATE, seconds=SEC
     audio.terminate()
 
     print("Recording is finished!!")
-    return frames, audio
+    return frames
 
 # create a dir of format [patient_d]/YEAR/MONTH/DAY/HOUR/MIN/SEC
 def build_dir(patient_id=PATIENT_ID, def_dir=DEFAULT_DIR):
@@ -41,17 +47,17 @@ def build_dir(patient_id=PATIENT_ID, def_dir=DEFAULT_DIR):
     return directory
 
 # save as .wav
-def save_wav(frames, path, audio, format=FORMAT, rate=SAMPLE_RATE, channels=CHANNELS):
-    recorded_file = path / "recorded.wav"
-
-    with wave.open(str(recorded_file), 'wb') as wf:
-        wf.setnchannels(channels)
-        wf.setsampwidth(audio.get_sample_size(format))
-        wf.setframerate(rate)
-        wf.writeframes(b''.join(frames))
-
-    print(f"Saved as {recorded_file}")
-    return recorded_file
+def save_wav(frames, path, format=FORMAT, rate=SAMPLE_RATE, channels=CHANNELS):
+    # convert frames to numpy array
+    audio_data = b''.join(frames)
+    y_raw = np.frombuffer(audio_data, dtype=np.float32)
+    
+    # save raw recording
+    raw_file = path / "recorded_raw.wav"
+    sf.write(raw_file, y_raw, rate, subtype='FLOAT')
+    print(f"Saved raw recording: {raw_file}")
+    
+    return raw_file
 
 # upload to s3 bucket
 def upload_to_s3(file_path, bucket, patient_id):
@@ -67,10 +73,9 @@ def upload_to_s3(file_path, bucket, patient_id):
 
     print(f"Uploaded to s3://{bucket}/{key}")
 
-
 if __name__ == "__main__":
-    frames, audio = record_audio()
+    frames = record_audio()  # Only return frames
     output_dir = build_dir()
-    wav_file = save_wav(frames, output_dir, audio)
+    wav_file = save_wav(frames, output_dir)  # Returns filtered file
     upload_to_s3(wav_file, BUCKET_NAME, PATIENT_ID)
 
