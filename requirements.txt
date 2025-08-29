@@ -4,5 +4,4 @@ librosa
 numpy
 scipy
 matplotlib
-numpy
 soundfile
